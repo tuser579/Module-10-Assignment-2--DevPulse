@@ -1,0 +1,20 @@
+Link List:
+Github Link: https://github.com/Apollo-Level2-Web-Dev/be-a-node-express-expert-b7/tree/module-7
+
+
+Comand List:
+1. npm init --y                                   # for package.json file created
+2. npm i -D typescript                            # for typescript package installed
+3. npx tsc --init                                 # for typescript init (create tsconfig.json file)
+4. npm install express                            # for express package installed
+5. npm install @types/express -D                  # for express types package installed
+6. npm i -D tsx                                   # for tsx package installed
+7. npm i pg                                       # for PostgreSQL package installed
+8. npm i --save-dev @types/pg                     # for PostgreSQL types package installed
+9. npm install dotenv                             # for dotenv package installed
+10. npm install bcryptjs                          # for bcryptjs package installed
+11. npm i jsonwebtoken                            # for jwt package installed
+12. npm i cookie-parser                           # for cookie-parser package installed
+13. npm i --save-dev @types/cookie-parser         # for cookie-parser types package installed
+14. npm i cors                                    # for cors package installed
+15. npm i --save-dev @types/cors                # for cors types package installed

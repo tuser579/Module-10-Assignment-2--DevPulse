@@ -1,0 +1,56 @@
+import { pool } from "../../db/index.js";
+import type { IUser } from "./user.interface.js";
+import bcrypt from 'bcryptjs';
+
+const createUserIntoDB = async(userData: IUser) => {
+    const { name, email, password, age, role} = userData;
+
+    const hashPassword = await bcrypt.hash(password, 10);
+
+    const result = await pool.query(
+        // `INSERT INTO users (name, email, password, age) VALUES ($1, $2, $3, $4) RETURNING name,email,age,created_at`,
+        `INSERT INTO users (name, email, password, age, role) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [name, email, hashPassword, age, role || "user"]
+    );
+
+    delete result.rows[0].password;
+    return result;    
+}
+
+const getAllUsersFromDB = async() => {
+    const result = await pool.query(`SELECT * FROM users`);
+    return result;
+}
+
+const getSingleUserFromDB = async(id: Number) => {
+    const result = await pool.query(`SELECT * FROM users WHERE id = $1`, [id]);
+    return result;
+}
+
+const updateSingleUserIntoDB = async(id: Number, userData: IUser) => {
+    const { name, email, password, age } = userData;
+    const result = await pool.query(`
+        UPDATE users 
+        SET 
+        name = COALESCE($1, name),
+        email = COALESCE($2, email), 
+        password = COALESCE($3, password), 
+        age = COALESCE($4, age) 
+        WHERE id = $5 RETURNING *`, 
+        [name, email, password, age, id]
+    );
+    return result;
+}
+
+const deleteSingleUserFromDB = async(id: Number) => {
+    const result = await pool.query(`DELETE FROM users WHERE id = $1 RETURNING *`, [id]);
+    return result;
+}
+
+export const userService = {
+    createUserIntoDB,
+    getAllUsersFromDB,
+    getSingleUserFromDB,
+    updateSingleUserIntoDB,
+    deleteSingleUserFromDB
+}
