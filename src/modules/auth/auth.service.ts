@@ -1,15 +1,35 @@
 import bcrypt from "bcryptjs";
 import { pool } from "../../db/index.js";
-import type { ILoginData } from "./auth.interface.js";
+import type { ILoginData, IRegisterData } from "./auth.interface.js";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import config from "../../config/index.js";
 
+const registerUserIntoDB = async (registerData: IRegisterData) => {
+    const { name, email, password, role } = registerData;
+
+    const userData = await pool.query(
+        `SELECT * FROM users WHERE email = $1`,
+        [email]
+    );
+
+    if (userData.rows.length > 0) {
+        throw new Error("User already exists");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const result = await pool.query(
+        `INSERT INTO users (name, email, password, role) 
+        VALUES ($1, $2, $3, $4) 
+        RETURNING *`,
+        [name, email, hashedPassword, role]
+    );
+    delete result.rows[0].password;
+    return result.rows[0];
+}
+
 const loginUserIntoDB = async (loginData: ILoginData) => {
     const { email, password } = loginData;
-
-    // 1. Check if user exists
-    // 2. Compare the password
-    // 3. Generate access token    
 
     const userData = await pool.query(
         `SELECT * FROM users WHERE email = $1`,
@@ -29,28 +49,28 @@ const loginUserIntoDB = async (loginData: ILoginData) => {
     }
 
     const jwtpayload = {
-        id: user.id,        
+        id: user.id,
         name: user.name,
-        email: user.email,
-        role: user.role,
-        is_active: user.is_active   
+        role: user.role
     }
 
-    const accessToken = jwt.sign(jwtpayload, config.access_secret_key as string, { expiresIn: config.access_token_expires_in as any });
+    const token = jwt.sign(jwtpayload, config.access_secret_key as string, { expiresIn: config.access_token_expires_in as any });
 
     const refreshToken = jwt.sign(jwtpayload, config.refresh_secret_key as string, { expiresIn: config.refresh_token_expires_in as any });
 
-    return { accessToken, refreshToken };
-}   
+    delete userData.rows[0].password;
+
+    return { token, user: userData.rows[0] };
+}
 
 const genarateFreshToken = async (token: string) => {
-    
+
     if (!token) {
         throw new Error("You are not authorized to access this API");
     }
 
     const decoded = jwt.verify(
-        token as string, 
+        token as string,
         config.refresh_secret_key as string
     ) as JwtPayload;
 
@@ -60,24 +80,23 @@ const genarateFreshToken = async (token: string) => {
         throw new Error("User not found");
     }
 
-    if(!userData.rows[0].is_active){
+    if (!userData.rows[0].is_active) {
         throw new Error("Your account is not active");
     }
 
     const jwtpayload = {
         id: userData.rows[0].id,
         name: userData.rows[0].name,
-        email: userData.rows[0].email,
-        role: userData.rows[0].role,
-        is_active: userData.rows[0].is_active
+        role: userData.rows[0].role
     }
 
     const accessToken = jwt.sign(jwtpayload, config.access_secret_key as string, { expiresIn: config.access_token_expires_in as any });
 
     return { accessToken };
-} 
+}
 
 export const authService = {
+    registerUserIntoDB,
     loginUserIntoDB,
     genarateFreshToken
 };
