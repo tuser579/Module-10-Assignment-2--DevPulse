@@ -21,3 +21,15 @@
 # Database schema summary:
 ## users table: id, name, email, password, role, created_at, updated_at
 ## issues table: id, title, description, type, status, reporter_id, created_at, updated_at
+
+
+# Vercel deploy using comand
+```
+npm run build
+```
+```
+vercel login
+```
+```
+vercel --prod
+```

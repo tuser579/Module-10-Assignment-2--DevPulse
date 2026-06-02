@@ -94,6 +94,11 @@ const getSingleIssueFromDB = async (id: string) => {
 }
 
 const updateSingleIssueFromDB = async (id: string, payload: IIssue, user: IUser) => {
+    const issue = await getSingleIssueFromDB(id);
+    if(user.role === 'contributor' && issue.status !== 'open'){
+        throw new Error("You are not authorized to update this issue");
+    }
+
     const result = await pool.query(
         `UPDATE issues SET title = $1, description = $2, type = $3 WHERE id = $4 RETURNING *`,
         [payload.title, payload.description, payload.type, id]
