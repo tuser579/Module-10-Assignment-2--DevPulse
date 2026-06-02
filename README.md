@@ -1,7 +1,7 @@
 # Project name: Issue Tracker
-# Live URL: https://issue-tracker-phi.vercel.app/
-# Features: Create, Read, Update, Delete issues, User authentication, Role-based access control, Filtering and sorting, Pagination
-# Tech stack: Express, TypeScript, PostgreSQL, Neon Serverless Cloud, JWT, bcrypt
+## Live URL: https://express-postgresql-server.vercel.app/
+## Features: Create, Read, Update, Delete issues, User authentication, Role-based access control, Filtering and sorting, Pagination
+## Tech stack: Express, TypeScript, PostgreSQL, Neon Serverless Cloud, JWT, bcrypt
 
 # Setup steps:
 ## 1. Clone the repository
