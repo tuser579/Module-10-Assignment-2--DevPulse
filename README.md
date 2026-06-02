@@ -16,7 +16,7 @@
 ## GET /api/issues - Get all issues
 ## GET /api/issues/:id - Get a single issue
 ## PUT /api/issues/:id - Update an issue
-## DELETE /api/v1/issues/:id - Delete an issue
+## DELETE /api/issues/:id - Delete an issue
 
 # Database schema summary:
 ## users table: id, name, email, password, role, created_at, updated_at
