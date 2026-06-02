@@ -28,6 +28,13 @@ const auth = (...roles: ROLES[]) => {
                     message: "You are not authorized to access this API"
                 })
             }
+
+            if(roles.length > 0 && !roles.includes(userData.rows[0].role)){
+                return res.status(401).json({
+                    success: false,
+                    message: "You are not authorized to access this API"
+                })
+            }
             
             req.user = userData.rows[0];
             next();

@@ -5,6 +5,8 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import globalErrorHandler from './middleware/globalErrorHandler.js';
 import { issueRoute } from './modules/issue/issue.route.js';
+import config from './config/index.js';
+import sendResponse from './utility/sendResponse.js';
 
 const app: Application = express();
 
@@ -16,12 +18,16 @@ app.use(express.urlencoded({ extended: true }));
 app.use(logger);
 app.use(cookieParser());
 app.use(cors({
-    origin: "http://localhost:5000"
+    origin: config.origin_url
 }));
 
 // application main route
 app.get('/', (req: Request, res: Response) => {
-    res.status(200).json({ success: true, message: "Hello World! Welcome to University Management System" });
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "DevPulse - Assignment Requirements Specification"
+    })
 })
 
 app.use("/api/auth", authRoute);

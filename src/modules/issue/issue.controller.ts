@@ -60,8 +60,48 @@ const getSingleIssue = async(req: Request, res: Response) => {
     }
 }
 
+const updateSingleIssue = async(req: Request, res: Response) => {
+    try {
+        const result = await issueService.updateSingleIssueFromDB(req.params.id as string, req.body, req.user as IUser);
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: "Issue updated successfully",
+            data: result
+        });
+    } catch (error: any) {
+        sendResponse(res, {
+            statusCode: 500,
+            success: false,
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+}
+
+const deleteSingleIssue = async(req: Request, res: Response) => {
+    try {
+        const result = await issueService.deleteSingleIssueFromDB(req.params.id as string);
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: "Issue deleted successfully",
+            data: result
+        });
+    } catch (error: any) {
+        sendResponse(res, {
+            statusCode: 500,
+            success: false,
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+}
+
 export const issueController = {
     createIssue,
     getAllIssues,
-    getSingleIssue
+    getSingleIssue,
+    updateSingleIssue,
+    deleteSingleIssue
 };

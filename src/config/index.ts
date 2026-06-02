@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import path from "path";
+
 dotenv.config({ 
     path: path.join(process.cwd(), ".env")
 });
@@ -11,6 +12,7 @@ const config = {
   refresh_secret_key: process.env.JWT_REFRESH_SECRET,
   access_token_expires_in: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
   refresh_token_expires_in: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN,
+  origin_url: process.env.ORIGIN_URL
 };
 
 export default config;

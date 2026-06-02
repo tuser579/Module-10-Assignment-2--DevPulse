@@ -93,8 +93,40 @@ const getSingleIssueFromDB = async (id: string) => {
     };
 }
 
+const updateSingleIssueFromDB = async (id: string, payload: IIssue, user: IUser) => {
+    const result = await pool.query(
+        `UPDATE issues SET title = $1, description = $2, type = $3 WHERE id = $4 RETURNING *`,
+        [payload.title, payload.description, payload.type, id]
+    );
+
+    if(result.rows.length === 0){
+        throw new Error("Issue not found");
+    }
+
+    if(user.role === 'contributor' && result.rows[0].reporter_id !== user.id){
+        throw new Error("You are not authorized to update this issue");
+    }
+
+    return result.rows[0];
+}
+
+const deleteSingleIssueFromDB = async (id: string) => {
+    const result = await pool.query(
+        `DELETE FROM issues WHERE id = $1 RETURNING *`,
+        [id]
+    );
+
+    if(result.rows.length === 0){
+        throw new Error("Issue not found");
+    }
+
+    return result.rows[0];
+}
+
 export const issueService = {
     createIssueIntoDB,
     getAllIssuesFromDB,
-    getSingleIssueFromDB
+    getSingleIssueFromDB,
+    updateSingleIssueFromDB,
+    deleteSingleIssueFromDB
 };
