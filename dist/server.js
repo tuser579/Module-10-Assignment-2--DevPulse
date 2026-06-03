@@ -338,9 +338,9 @@ var getSingleIssueFromDB = async (id) => {
     [issue.reporter_id]
   );
   const reporter = reporterResult.rows[0];
-  delete issue.reporter_id;
+  const { reporter_id, ...issueData } = issue;
   return {
-    ...issue,
+    ...issueData,
     reporter: reporter || null
   };
 };
@@ -356,10 +356,11 @@ var updateSingleIssueFromDB = async (id, payload, user) => {
   if (result.rows.length === 0) {
     throw new Error("Issue not found");
   }
-  if (user.role === "contributor" && result.rows[0].reporter_id !== user.id) {
+  const updatedIssue = result.rows[0];
+  if (user.role === "contributor" && updatedIssue.reporter_id !== user.id) {
     throw new Error("You are not authorized to update this issue");
   }
-  return result.rows[0];
+  return updatedIssue;
 };
 var deleteSingleIssueFromDB = async (id) => {
   const result = await pool.query(
