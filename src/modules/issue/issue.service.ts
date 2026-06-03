@@ -1,21 +1,21 @@
 import { pool } from "../../db/index.js";
-import type { IIssue, IUser } from "./issue.interface.js";
+import type { IIssue, IIssueFromDB, IIssueQuery, IUser, IUserFromDB } from "./issue.interface.js";
 
-const createIssueIntoDB = async(payload: IIssue, user: IUser) => {
+const createIssueIntoDB = async(payload: IIssue, user: IUser): Promise<IIssueFromDB> => {
     const result = await pool.query(
         `INSERT INTO issues (title, description, type, reporter_id  ) 
         VALUES ($1, $2, $3, $4) 
         RETURNING *`, 
         [payload.title, payload.description, payload.type, user.id]
     );
-    return result.rows[0];
+    return result.rows[0] as IIssueFromDB;
 }
 
-const getAllIssuesFromDB = async (query: Record<string, any>) => {
+const getAllIssuesFromDB = async (query: IIssueQuery) => {
     const { sort, type, status } = query;
 
     let sql = `SELECT * FROM issues`;
-    const queryParams: any[] = [];
+    const queryParams: (string | undefined)[] = [];
     const filters: string[] = [];
 
     if (type) {
@@ -39,24 +39,24 @@ const getAllIssuesFromDB = async (query: Record<string, any>) => {
     }
 
     const result = await pool.query(sql, queryParams);
-    const issues = result.rows;
+    const issues = result.rows as IIssueFromDB[];
 
     if (issues.length === 0) {
         return issues;
     }
 
-    const reporterIds = [...new Set(issues.map((issue: any) => issue.reporter_id))];
+    const reporterIds = [...new Set(issues.map((issue) => issue.reporter_id))];
     const userResult = await pool.query(
         `SELECT id, name, role FROM users WHERE id = ANY($1)`,
         [reporterIds]
     );
 
-    const userMap = userResult.rows.reduce((acc: any, user: any) => {
+    const userMap = userResult.rows.reduce((acc: Record<string, IUserFromDB>, user: IUserFromDB) => {
         acc[user.id] = user;
         return acc;
     }, {});
 
-    const resultWithReporter = issues.map((issue: any) => {
+    const resultWithReporter = issues.map((issue) => {
         const { reporter_id, ...issueData } = issue;
         return {
             ...issueData,
@@ -72,7 +72,7 @@ const getSingleIssueFromDB = async (id: string) => {
         `SELECT * FROM issues WHERE id = $1`,
         [id]
     );
-    const issue = result.rows[0];
+    const issue = result.rows[0] as IIssueFromDB;
 
     if (!issue) {
         throw new Error("Issue not found");
@@ -83,17 +83,17 @@ const getSingleIssueFromDB = async (id: string) => {
         [issue.reporter_id]
     );
 
-    const reporter = reporterResult.rows[0];
+    const reporter = reporterResult.rows[0] as IUserFromDB;
 
-    delete issue.reporter_id;
+    const { reporter_id, ...issueData } = issue;
 
     return {
-        ...issue,
+        ...issueData,
         reporter: reporter || null,
     };
 }
 
-const updateSingleIssueFromDB = async (id: string, payload: IIssue, user: IUser) => {
+const updateSingleIssueFromDB = async (id: string, payload: IIssue, user: IUser): Promise<IIssueFromDB> => {
     const issue = await getSingleIssueFromDB(id);
     if(user.role === 'contributor' && issue.status !== 'open'){
         throw new Error("You are not authorized to update this issue");
@@ -108,14 +108,16 @@ const updateSingleIssueFromDB = async (id: string, payload: IIssue, user: IUser)
         throw new Error("Issue not found");
     }
 
-    if(user.role === 'contributor' && result.rows[0].reporter_id !== user.id){
+    const updatedIssue = result.rows[0] as IIssueFromDB;
+
+    if(user.role === 'contributor' && updatedIssue.reporter_id !== user.id){
         throw new Error("You are not authorized to update this issue");
     }
 
-    return result.rows[0];
+    return updatedIssue;
 }
 
-const deleteSingleIssueFromDB = async (id: string) => {
+const deleteSingleIssueFromDB = async (id: string): Promise<IIssueFromDB> => {
     const result = await pool.query(
         `DELETE FROM issues WHERE id = $1 RETURNING *`,
         [id]
@@ -125,7 +127,7 @@ const deleteSingleIssueFromDB = async (id: string) => {
         throw new Error("Issue not found");
     }
 
-    return result.rows[0];
+    return result.rows[0] as IIssueFromDB;
 }
 
 export const issueService = {
